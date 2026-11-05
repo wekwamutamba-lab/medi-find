@@ -139,7 +139,7 @@ export default function App() {
     [search],
   );
 
-  const navigate = (page: string) => setActivePage(page);
+  const handleNavigation = (page: string) => setActivePage(page);
   const today = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(new Date());
 
   const exportInventory = () => {

@@ -15,3 +15,23 @@ export interface InventoryItem {
   created_at: string;
   updated_at: string;
 }
+
+export type MovementType = 'RECEIPT' | 'ISSUE' | 'ADJUSTMENT' | 'QUARANTINE';
+
+export interface InventoryMovement {
+  id: string;
+  medicine_id: string;
+  medicine_name: string;
+  movement_type: MovementType;
+  batch_number: string;
+  quantity_change: number;
+  reason: string;
+  performed_by: string;
+  created_at: string;
+}
+
+export interface MovementFilters {
+  search: string;
+  movement_type: MovementType | 'All';
+  date_range: 'All Time' | 'Today' | 'Last 7 Days' | 'Last 30 Days';
+}
