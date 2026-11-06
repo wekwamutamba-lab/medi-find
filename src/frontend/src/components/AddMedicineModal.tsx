@@ -1,4 +1,4 @@
-import {} from 'lucide-react';
+import React, { useState } from 'react';
 
 export type MedicineFormValues = {
   name: string;
@@ -18,16 +18,20 @@ export function AddMedicineModal({
   onClose: () => void;
   onSubmit: (data: MedicineFormValues) => void;
 }) {
-  const [form, setForm] = React.useState<MedicineFormValues>({
+  const [form, setForm] = useState<MedicineFormValues>({
     name: '',
     category: '',
     reorder_threshold: 10,
     unit_price: 0,
   });
-  const [error, setError] = React.useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value as any });
+    const { name, value } = e.target;
+    setForm((current) => ({
+      ...current,
+      [name]: name === 'reorder_threshold' || name === 'unit_price' ? Number(value) : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

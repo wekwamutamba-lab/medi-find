@@ -1,3 +1,5 @@
+import React, { useState } from 'react';
+
 export interface AdjustmentFormValues {
   medicineId: string;
   batchNumber: string;
@@ -10,33 +12,38 @@ export function ManualStockAdjustmentModal({
   isOpen,
   onClose,
   onSubmit,
-  medicines}: {
+  medicines,
+}: {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: AdjustmentFormValues) => void;
   medicines: { id: string; name: string }[];
 }) {
-  const [form, setForm] = React.useState<AdjustmentFormValues>({
+  const [form, setForm] = useState<AdjustmentFormValues>({
     medicineId: '',
     batchNumber: '',
     adjustmentType: 'Correction (+)',
     quantity: 1,
     reason: '',
   });
-  const [error, setError] = React.useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((current) => ({
+      ...current,
+      [name]: name === 'quantity' ? Number(value) : value,
+    }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
       onSubmit(form);
       onClose();
-    } catch (err) {
-      setError(err.message || 'Failed to record adjustment');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to record adjustment');
     }
   };
 

@@ -1,4 +1,4 @@
-import {} from 'lucide-react';
+import { Download, Search } from 'lucide-react';
 
 export interface MovementsControlsProps {
   searchQuery: string;
@@ -10,9 +10,6 @@ export interface MovementsControlsProps {
   onExportCsv: () => void;
 }
 
-/**
- * MovementsControls - Search, filter, and export bar above the audit ledger
- */
 export function MovementsControls({
   searchQuery,
   setSearchQuery,
@@ -40,24 +37,22 @@ export function MovementsControls({
   return (
     <div className="border-b border-slate-200 bg-white rounded-xl p-4 mb-6">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-        {/* Search Input */}
-        <div className="flex-1 sm:max-w-md">
+        <div className="relative flex-1 sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search by medicine name, batch number, reason, or staff ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 rounded-lg border border-slate-200 h-10 px-12 text-sm focus-ring:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-opacity-40 placeholder-slate-400"
+            className="w-full pl-10 rounded-lg border border-slate-200 h-10 px-12 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-opacity-40 placeholder-slate-400"
           />
         </div>
 
-        {/* Movement Type Filter */}
         <div className="relative sm:ml-4">
           <select
             value={movementTypeFilter}
             onChange={(e) => setMovementTypeFilter(e.target.value as any)}
-            className="rounded-lg border border-slate-200 bg-white h-10 px-3 text-sm focus-ring:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-opacity-40 cursor-pointer"
+            className="rounded-lg border border-slate-200 bg-white h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-opacity-40 cursor-pointer"
           >
             {movementTypes.map((option) => (
               <option key={option.value} value={option.value}>
@@ -67,12 +62,11 @@ export function MovementsControls({
           </select>
         </div>
 
-        {/* Date Range Filter */}
         <div className="relative sm:ml-4">
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value as any)}
-            className="rounded-lg border border-slate-200 bg-white h-10 px-3 text-sm focus-ring:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-opacity-40 cursor-pointer"
+            className="rounded-lg border border-slate-200 bg-white h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-opacity-40 cursor-pointer"
           >
             {dateRanges.map((range) => (
               <option key={range.value} value={range.value}>
@@ -82,13 +76,10 @@ export function MovementsControls({
           </select>
         </div>
 
-        {/* Export Button */}
         <div className="relative sm:ml-4">
           <button
             onClick={onExportCsv}
-            className="
-              rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 transition-colors
-            "
+            className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 transition-colors"
             aria-label="Export Audit Log CSV"
           >
             <Download className="w-4 h-4" /> Export Audit Log (CSV)
