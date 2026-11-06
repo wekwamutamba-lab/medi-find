@@ -9,6 +9,7 @@
     "preview": "vite preview --config vite.config.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "lucide-react": "^0.424.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
