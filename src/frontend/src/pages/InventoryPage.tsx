@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getStoredAccessToken } from '../api';
 import { AddMedicineModal } from '../components/AddMedicineModal';
 import { ControlsBar } from '../components/ControlsBar';
 import { InventoryTable } from '../components/InventoryTable';
@@ -14,7 +15,7 @@ const demoInventory: InventoryItem[] = [
 ];
 
 function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('medifind_token');
+  const token = getStoredAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 

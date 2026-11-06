@@ -80,14 +80,16 @@ export async function getMedicine(id: string) {
 export async function createMedicine(data: any) {
   try {
     const row = await queryOne<Medicine>(
-      `INSERT INTO medicines (name, strength, dosage_form, pack_size, reorder_level, notes, is_active)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      `INSERT INTO medicines (name, strength, dosage_form, pack_size, category, reorder_level, unit_price, notes, is_active)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
       [
         data.name,
         data.strength,
         data.dosage_form,
         data.pack_size,
+        data.category ?? 'Other',
         data.reorder_level ?? 0,
+        Number(data.unit_price ?? 0),
         data.notes ?? null,
         data.is_active ?? true,
       ],
@@ -111,7 +113,9 @@ export async function updateMedicine(id: string, data: any) {
   const map: Record<string, string> = {
     name: 'name',
     strength: 'strength',
+    category: 'category',
     reorder_level: 'reorder_level',
+    unit_price: 'unit_price',
     notes: 'notes',
     is_active: 'is_active',
   };

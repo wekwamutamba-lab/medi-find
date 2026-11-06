@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { getStoredAccessToken } from '../api';
 
 type Message = {
   id: string;
@@ -31,7 +32,7 @@ function buildDemoAnswer(question: string) {
 }
 
 async function askAi(question: string) {
-  const token = localStorage.getItem('medifind_token');
+  const token = getStoredAccessToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
   if (token) {

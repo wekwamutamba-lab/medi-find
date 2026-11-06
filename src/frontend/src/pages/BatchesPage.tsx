@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getStoredAccessToken } from '../api';
 
 const demoBatches = [
   { id: 'b1', medicine_name: 'Paracetamol 500mg', batch_number: 'PC-1042', expiry_date: '2027-08-14', quantity_packs: 120, created_at: '2026-11-05T09:30:00.000Z' },
@@ -7,7 +8,7 @@ const demoBatches = [
 ];
 
 function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('medifind_token');
+  const token = getStoredAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 

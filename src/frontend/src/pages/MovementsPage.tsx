@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { getStoredAccessToken } from '../api';
 import { MovementsControls } from '../components/MovementsControls';
 import { MovementsTable } from '../components/MovementsTable';
 
@@ -10,7 +11,7 @@ const demoMovements = [
 ];
 
 function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('medifind_token');
+  const token = getStoredAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 

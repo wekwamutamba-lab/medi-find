@@ -14,7 +14,9 @@ export interface Medicine {
   strength: string;
   dosage_form: string;
   pack_size: number;
+  category: string;
   reorder_level: number;
+  unit_price: number;
   notes: string | null;
   is_active: boolean;
   created_at: string;

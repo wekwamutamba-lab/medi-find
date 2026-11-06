@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Bell, ChevronRight, ClipboardList, Menu, PackageCheck, PackageSearch, Sparkles, Truck } from 'lucide-react';
+import {
+  Bell,
+  ChevronRight,
+  ClipboardList,
+  Menu,
+  PackageCheck,
+  PackageSearch,
+  Sparkles,
+  Truck,
+} from 'lucide-react';
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import { InventoryPage } from './pages/InventoryPage';
 import { BatchesPage } from './pages/BatchesPage';

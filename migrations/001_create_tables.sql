@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 );
 
 CREATE TABLE IF NOT EXISTS profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY,
   full_name TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('admin','pharmacist')) DEFAULT 'pharmacist',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -21,7 +21,9 @@ CREATE TABLE IF NOT EXISTS medicines (
   strength TEXT NOT NULL,
   dosage_form TEXT NOT NULL,
   pack_size INTEGER NOT NULL,
+  category TEXT NOT NULL DEFAULT 'Other',
   reorder_level INTEGER NOT NULL DEFAULT 0,
+  unit_price NUMERIC(10,2) NOT NULL DEFAULT 0,
   notes TEXT,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -56,22 +58,6 @@ CREATE TABLE IF NOT EXISTS alert_settings (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_by UUID REFERENCES profiles(id)
 );
-
--- trigger for profiles on auth.users insert
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, full_name, role)
-  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email), 'pharmacist')
-  ON CONFLICT (id) DO NOTHING;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- seed alert_settings row
 INSERT INTO alert_settings (id, expiry_warning_days) VALUES (1, 60) ON CONFLICT (id) DO NOTHING;

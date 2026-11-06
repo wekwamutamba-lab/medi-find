@@ -5,7 +5,9 @@ export const medicineCreateSchema = z.object({
   strength: z.string().min(1).max(100),
   dosage_form: z.string().min(1).max(50),
   pack_size: z.coerce.number().int().positive(),
+  category: z.string().max(100).default('Other'),
   reorder_level: z.coerce.number().int().min(0).default(0),
+  unit_price: z.coerce.number().min(0).default(0),
   notes: z.string().max(1000).optional().nullable(),
   is_active: z.boolean().optional(),
 });
@@ -13,7 +15,9 @@ export const medicineCreateSchema = z.object({
 export const medicineUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   strength: z.string().min(1).max(100).optional(),
+  category: z.string().max(100).optional(),
   reorder_level: z.coerce.number().int().min(0).optional(),
+  unit_price: z.coerce.number().min(0).optional(),
   notes: z.string().max(1000).optional().nullable(),
   is_active: z.boolean().optional(),
 });
