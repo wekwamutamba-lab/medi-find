@@ -75,9 +75,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   useEffect(() => {
-    void loadProfile().finally(() => {
-      setLoading(false);
-    });
+    let isMounted = true;
+
+    const initAuth = async () => {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Auth timeout')), 5000),
+      );
+
+      try {
+        await Promise.race([loadProfile(), timeoutPromise]);
+      } catch (err) {
+        console.warn('Auth check bypassed or timed out:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
