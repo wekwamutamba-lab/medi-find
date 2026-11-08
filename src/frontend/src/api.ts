@@ -234,7 +234,7 @@ export type ContactRecord = any;
 export type SaleRecord = any;
 export type AttentionSummary = any;
 export function startDemoSession() { localStorage.setItem('medifind.session', JSON.stringify({ access_token: 'demo', refresh_token: 'demo', expires_at: Date.now() + 86400000 })); }
-export async function askAi(prompt: string) { return request<any>('/ai/query', { method: 'POST', body: JSON.stringify({ prompt }) }); }
+export async function askAi(prompt: string) { return request<any>('/ai/ask', { method: 'POST', body: JSON.stringify({ prompt }) }); }
 export async function createBatch(data: any) { return request<any>('/batches', { method: 'POST', body: JSON.stringify(data) }); }
 export async function getAlertsSummary() { return request<any>('/alerts/summary'); }
 export async function createCustomer(data: any) { return request<any>('/customers', { method: 'POST', body: JSON.stringify(data) }); }
