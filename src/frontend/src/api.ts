@@ -65,7 +65,7 @@ interface ApiEnvelope<T> {
   error: { code?: string; message?: string } | null;
 }
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/$/, '');
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const SESSION_KEY = 'medifind.session';
@@ -210,6 +210,42 @@ export async function getAllBatches() {
   return request<Batch[]>('/batches');
 }
 
-export async function getMovements(page = 1, limit = 100) {
-  return request<{ items: Movement[]; total: number; page: number; limit: number }>(`/movements?page=${page}&limit=${limit}`);
+export async function onboardPharmacy(data: any) {
+  return request<any>('/pharmacy/onboard', { method: 'POST', body: JSON.stringify(data) });
 }
+
+export async function createMedicine(data: any) {
+  return request<Medicine>('/medicines', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function recordSale(saleData: any) {
+  return request<any>('/sales', { method: 'POST', body: JSON.stringify(saleData) });
+}
+
+export async function getInventory() {
+  return request<{ items: Medicine[]; total: number }>('/medicines');
+}
+
+export async function getDashboardMetrics() {
+  return request<any>('/summary');
+}
+
+export type ContactRecord = any;
+export type SaleRecord = any;
+export type AttentionSummary = any;
+export function startDemoSession() { localStorage.setItem('medifind.session', JSON.stringify({ access_token: 'demo', refresh_token: 'demo', expires_at: Date.now() + 86400000 })); }
+export async function askAi(prompt: string) { return request<any>('/ai/query', { method: 'POST', body: JSON.stringify({ prompt }) }); }
+export async function createBatch(data: any) { return request<any>('/batches', { method: 'POST', body: JSON.stringify(data) }); }
+export async function getAlertsSummary() { return request<any>('/alerts/summary'); }
+export async function createCustomer(data: any) { return request<any>('/customers', { method: 'POST', body: JSON.stringify(data) }); }
+export async function deleteCustomer(id: string) { return request<any>(`/customers/${id}`, { method: 'DELETE' }); }
+export async function getCustomers() { return request<any[]>('/customers'); }
+export async function getSales() { return request<any[]>('/sales'); }
+export async function archiveMedicine(id: string) { return request<any>(`/medicines/${id}/archive`, { method: 'POST' }); }
+export async function updateMedicine(id: string, data: any) { return request<any>(`/medicines/${id}`, { method: 'PUT', body: JSON.stringify(data) }); }
+export async function completeSale(data: any) { return request<any>('/sales', { method: 'POST', body: JSON.stringify(data) }); }
+export async function createSupplier(data: any) { return request<any>('/suppliers', { method: 'POST', body: JSON.stringify(data) }); }
+export async function deleteSupplier(id: string) { return request<any>(`/suppliers/${id}`, { method: 'DELETE' }); }
+export async function getSuppliers() { return request<any[]>('/suppliers'); }
+export async function updateSupplier(id: string, data: any) { return request<any>(`/suppliers/${id}`, { method: 'PUT', body: JSON.stringify(data) }); }
+export async function getMovements(page = 1, limit = 100) { return request<any>(`/movements?page=${page}&limit=${limit}`); }
