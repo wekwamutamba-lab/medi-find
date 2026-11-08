@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    if (session.access_token === 'demo-token') {
+    if (session.access_token === 'demo-token' || session.access_token === 'demo') {
       setUser({ id: 'demo-user', email: 'demo@pharmacy.local' });
       setProfile({ id: 'demo-user', full_name: 'Demo Pharmacist', role: 'admin', email: 'demo@pharmacy.local', pharmacy_name: 'Demo Pharmacy' });
       return;
