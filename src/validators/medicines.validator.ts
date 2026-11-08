@@ -15,6 +15,8 @@ export const medicineCreateSchema = z.object({
 export const medicineUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   strength: z.string().min(1).max(100).optional(),
+  dosage_form: z.string().min(1).max(50).optional(),
+  pack_size: z.coerce.number().int().positive().optional(),
   category: z.string().max(100).optional(),
   reorder_level: z.coerce.number().int().min(0).optional(),
   unit_price: z.coerce.number().min(0).optional(),

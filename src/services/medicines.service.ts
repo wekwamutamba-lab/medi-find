@@ -3,6 +3,7 @@ import { AppError } from '../middleware/errorHandler';
 import { Medicine } from '../types';
 
 export async function listMedicines(params: {
+  pharmacy_id: string;
   search?: string;
   low_stock?: boolean;
   include_inactive?: boolean;
@@ -10,8 +11,10 @@ export async function listMedicines(params: {
   limit: number;
 }) {
   const conditions: string[] = [];
-  const values: any[] = [];
-  let idx = 1;
+  const values: any[] = [params.pharmacy_id];
+  let idx = 2;
+
+  conditions.push('m.pharmacy_id = $1');
 
   if (!params.include_inactive) {
     conditions.push('m.is_active = TRUE');
@@ -26,13 +29,13 @@ export async function listMedicines(params: {
   // low_stock filter: compute usable stock via subquery
   let lowStockClause = '';
   if (params.low_stock) {
-    lowStockClause = `AND COALESCE((SELECT SUM(b.quantity_packs) FROM batches b WHERE b.medicine_id = m.id AND b.expiry_date >= CURRENT_DATE),0) < m.reorder_level`;
+    lowStockClause = `AND COALESCE((SELECT SUM(b.quantity_packs) FROM batches b WHERE b.medicine_id = m.id AND b.pharmacy_id = m.pharmacy_id AND b.expiry_date >= CURRENT_DATE),0) < m.reorder_level`;
   }
 
   const offset = (params.page - 1) * params.limit;
   const sql = `
     SELECT m.*,
-      COALESCE((SELECT SUM(b.quantity_packs) FROM batches b WHERE b.medicine_id = m.id AND b.expiry_date >= CURRENT_DATE),0)::int AS usable_stock
+      COALESCE((SELECT SUM(b.quantity_packs) FROM batches b WHERE b.medicine_id = m.id AND b.pharmacy_id = m.pharmacy_id AND b.expiry_date >= CURRENT_DATE),0)::int AS usable_stock
     FROM medicines m
     ${where} ${lowStockClause}
     ORDER BY m.name ASC
@@ -51,22 +54,22 @@ export async function listMedicines(params: {
   return { items: rows.rows, total: countRes?.c ?? 0, page: params.page, limit: params.limit };
 }
 
-export async function getMedicine(id: string) {
-  const med = await queryOne<Medicine>('SELECT * FROM medicines WHERE id = $1', [id]);
+export async function getMedicine(id: string, pharmacyId: string) {
+  const med = await queryOne<Medicine>('SELECT * FROM medicines WHERE id = $1 AND pharmacy_id = $2', [id, pharmacyId]);
   if (!med) throw new AppError(404, 'NOT_FOUND', 'Medicine not found');
 
   const batches = await query(
-    'SELECT * FROM batches WHERE medicine_id = $1 ORDER BY expiry_date ASC',
-    [id],
+    'SELECT * FROM batches WHERE medicine_id = $1 AND pharmacy_id = $2 ORDER BY expiry_date ASC',
+    [id, pharmacyId],
   );
   const movements = await query(
     `SELECT sm.* FROM stock_movements sm JOIN batches b ON b.id = sm.batch_id
-     WHERE b.medicine_id = $1 ORDER BY sm.created_at DESC LIMIT 20`,
-    [id],
+    WHERE b.medicine_id = $1 AND sm.pharmacy_id = $2 ORDER BY sm.created_at DESC LIMIT 20`,
+      [id, pharmacyId],
   );
   const stockRes = await queryOne<{ s: number }>(
-    "SELECT COALESCE(SUM(quantity_packs),0)::int AS s FROM batches WHERE medicine_id = $1 AND expiry_date >= CURRENT_DATE",
-    [id],
+    "SELECT COALESCE(SUM(quantity_packs),0)::int AS s FROM batches WHERE medicine_id = $1 AND pharmacy_id = $2 AND expiry_date >= CURRENT_DATE",
+    [id, pharmacyId],
   );
 
   return {
@@ -77,12 +80,13 @@ export async function getMedicine(id: string) {
   };
 }
 
-export async function createMedicine(data: any) {
+export async function createMedicine(data: any, pharmacyId: string) {
   try {
     const row = await queryOne<Medicine>(
-      `INSERT INTO medicines (name, strength, dosage_form, pack_size, category, reorder_level, unit_price, notes, is_active)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      `INSERT INTO medicines (pharmacy_id, name, strength, dosage_form, pack_size, category, reorder_level, unit_price, notes, is_active)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
       [
+        pharmacyId,
         data.name,
         data.strength,
         data.dosage_form,
@@ -103,8 +107,8 @@ export async function createMedicine(data: any) {
   }
 }
 
-export async function updateMedicine(id: string, data: any) {
-  const existing = await queryOne('SELECT id FROM medicines WHERE id = $1', [id]);
+export async function updateMedicine(id: string, data: any, pharmacyId: string) {
+  const existing = await queryOne('SELECT id FROM medicines WHERE id = $1 AND pharmacy_id = $2', [id, pharmacyId]);
   if (!existing) throw new AppError(404, 'NOT_FOUND', 'Medicine not found');
 
   const fields: string[] = [];
@@ -113,6 +117,8 @@ export async function updateMedicine(id: string, data: any) {
   const map: Record<string, string> = {
     name: 'name',
     strength: 'strength',
+    dosage_form: 'dosage_form',
+    pack_size: 'pack_size',
     category: 'category',
     reorder_level: 'reorder_level',
     unit_price: 'unit_price',
@@ -126,13 +132,13 @@ export async function updateMedicine(id: string, data: any) {
     }
   }
   if (fields.length === 0) {
-    return queryOne('SELECT * FROM medicines WHERE id = $1', [id]);
+    return queryOne('SELECT * FROM medicines WHERE id = $1 AND pharmacy_id = $2', [id, pharmacyId]);
   }
   fields.push('updated_at = now()');
-  values.push(id);
+  values.push(id, pharmacyId);
   try {
     const row = await queryOne<Medicine>(
-      `UPDATE medicines SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+      `UPDATE medicines SET ${fields.join(', ')} WHERE id = $${idx} AND pharmacy_id = $${idx + 1} RETURNING *`,
       values,
     );
     return row;
@@ -144,19 +150,19 @@ export async function updateMedicine(id: string, data: any) {
   }
 }
 
-export async function deleteMedicine(id: string) {
-  const med = await queryOne<Medicine>('SELECT * FROM medicines WHERE id = $1', [id]);
+export async function deleteMedicine(id: string, pharmacyId: string) {
+  const med = await queryOne<Medicine>('SELECT * FROM medicines WHERE id = $1 AND pharmacy_id = $2', [id, pharmacyId]);
   if (!med) throw new AppError(404, 'NOT_FOUND', 'Medicine not found');
 
   const movCount = await queryOne<{ c: number }>(
-    `SELECT COUNT(*)::int AS c FROM stock_movements sm JOIN batches b ON b.id = sm.batch_id WHERE b.medicine_id = $1`,
-    [id],
+    `SELECT COUNT(*)::int AS c FROM stock_movements sm JOIN batches b ON b.id = sm.batch_id WHERE b.medicine_id = $1 AND sm.pharmacy_id = $2`,
+    [id, pharmacyId],
   );
   if ((movCount?.c ?? 0) > 0) {
     // soft deactivate
-    await query('UPDATE medicines SET is_active = FALSE, updated_at = now() WHERE id = $1', [id]);
+    await query('UPDATE medicines SET is_active = FALSE, updated_at = now() WHERE id = $1 AND pharmacy_id = $2', [id, pharmacyId]);
     return { deactivated: true };
   }
-  await query('DELETE FROM medicines WHERE id = $1', [id]);
+  await query('DELETE FROM medicines WHERE id = $1 AND pharmacy_id = $2', [id, pharmacyId]);
   return { deleted: true };
 }

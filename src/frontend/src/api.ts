@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 export type Role = 'admin' | 'pharmacist';
 
 export interface Profile {
@@ -95,21 +93,9 @@ export function readSession(): Session | null {
   }
 }
 
-export function getStoredAccessToken(): string | null {
-  const session = readSession();
-  if (session?.access_token) return session.access_token;
-  const legacy = localStorage.getItem('medifind_token');
-  return legacy || null;
-}
-
 function writeSession(session: Session | null) {
-  if (session) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    localStorage.setItem('medifind_token', session.access_token);
-  } else {
-    localStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem('medifind_token');
-  }
+  if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  else localStorage.removeItem(SESSION_KEY);
 }
 
 async function supabaseAuth(path: string, body: Record<string, unknown>) {
@@ -133,16 +119,6 @@ function sessionFromAuth(data: { access_token: string; refresh_token: string; ex
 }
 
 export async function signIn(email: string, password: string) {
-  if (!authConfigured) {
-    const session = {
-      access_token: 'demo-token',
-      refresh_token: 'demo-refresh',
-      expires_at: Date.now() + 60 * 60 * 1000,
-    };
-    writeSession(session);
-    return session;
-  }
-
   const data = await supabaseAuth('token?grant_type=password', { email, password });
   const session = sessionFromAuth(data);
   writeSession(session);
@@ -150,16 +126,6 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signUp(fullName: string, email: string, password: string) {
-  if (!authConfigured) {
-    const session = {
-      access_token: 'demo-token',
-      refresh_token: 'demo-refresh',
-      expires_at: Date.now() + 60 * 60 * 1000,
-    };
-    writeSession(session);
-    return true;
-  }
-
   const data = await supabaseAuth('signup', { email, password, data: { full_name: fullName } });
   if (data.access_token && data.refresh_token) writeSession(sessionFromAuth(data));
   return Boolean(data.access_token);

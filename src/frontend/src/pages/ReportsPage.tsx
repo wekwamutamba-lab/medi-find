@@ -12,7 +12,7 @@ export function ReportsPage() {
       <div className="metrics-grid">
         <div className="metric-card">
           <div className="metric-top"><span>Revenue</span><span className="metric-icon icon-blue">R</span></div>
-          <div className="metric-value">৳184k</div>
+          <div className="metric-value">$184,000.00</div>
           <div className="metric-foot"><span className="trend-positive">+12.8%</span><span>vs last month</span></div>
         </div>
         <div className="metric-card">

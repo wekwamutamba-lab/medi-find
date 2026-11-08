@@ -11,6 +11,8 @@ import batchesRoutes from './routes/batches.routes';
 import movementsRoutes from './routes/movements.routes';
 import alertsRoutes from './routes/alerts.routes';
 import aiRoutes from './routes/ai.routes';
+import salesRoutes from './routes/sales.routes';
+import directoryRoutes from './routes/directory.routes';
 
 const app = express();
 
@@ -38,6 +40,8 @@ app.use('/api', batchesRoutes);
 app.use('/api', movementsRoutes);
 app.use('/api', alertsRoutes);
 app.use('/api', aiRoutes);
+app.use('/api', salesRoutes);
+app.use('/api', directoryRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ data: null, error: { code: 'NOT_FOUND', message: 'Route not found' } });

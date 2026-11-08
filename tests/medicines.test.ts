@@ -39,6 +39,24 @@ describe('Medicines', () => {
     expect(Array.isArray(res.body.data.items)).toBe(true);
   });
 
+  it('does not expose another pharmacy tenant medicine', async () => {
+    const otherUser = await createTestUser('pharmacist');
+    try {
+      const created = await request(app)
+        .post('/api/medicines')
+        .set('Authorization', `Bearer ${user.token}`)
+        .send({ name: 'TenantPrivateMed', strength: '50mg', dosage_form: 'tablet', pack_size: 10, reorder_level: 1 });
+      const hidden = await request(app)
+        .get(`/api/medicines/${created.body.data.id}`)
+        .set('Authorization', `Bearer ${otherUser.token}`);
+      const listed = await request(app).get('/api/medicines').set('Authorization', `Bearer ${otherUser.token}`);
+      expect(hidden.status).toBe(404);
+      expect(listed.body.data.items.some((medicine: any) => medicine.id === created.body.data.id)).toBe(false);
+    } finally {
+      await cleanupTestUser(otherUser.id);
+    }
+  });
+
   it('pharmacist cannot delete? admin only -> 403', async () => {
     const res = await request(app).delete('/api/medicines/00000000-0000-0000-0000-000000000000').set('Authorization', `Bearer ${user.token}`);
     // either 403 or 404; role guard should block before not found? delete requires admin -> 403

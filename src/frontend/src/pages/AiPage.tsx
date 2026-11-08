@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { getStoredAccessToken } from '../api';
+import { askAi as requestAiAnswer } from '../api';
 
 type Message = {
   id: string;
@@ -32,31 +32,10 @@ function buildDemoAnswer(question: string) {
 }
 
 async function askAi(question: string) {
-  const token = getStoredAccessToken();
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
   try {
-    const response = await fetch('/api/ai/ask', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ question }),
-    });
-
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      return {
-        answer: payload?.error?.message || buildDemoAnswer(question),
-        mode: 'fallback',
-      };
-    }
-
+    const payload = await requestAiAnswer(question);
     return {
-      answer: payload?.data?.answer || buildDemoAnswer(question),
+      answer: payload.answer || buildDemoAnswer(question),
       mode: 'live',
     };
   } catch {

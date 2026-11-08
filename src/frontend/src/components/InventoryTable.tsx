@@ -3,6 +3,9 @@ import { StockStatusBadge } from './StockStatusBadge';
 
 export interface InventoryTableProps {
   items: any[];
+  onEdit?: (item: any) => void;
+  onArchive?: (item: any) => void;
+  onViewBatches?: (item: any) => void;
   columns?: {
     name?: string;
     category?: string;
@@ -14,7 +17,7 @@ export interface InventoryTableProps {
   };
 }
 
-export function InventoryTable({ items }: InventoryTableProps) {
+export function InventoryTable({ items, onEdit, onArchive, onViewBatches }: InventoryTableProps) {
   const categoryColors: Record<string, string> = {
     Analgesics: 'bg-blue-100 text-blue-700',
     Antibiotics: 'bg-green-100 text-green-700',
@@ -32,6 +35,7 @@ export function InventoryTable({ items }: InventoryTableProps) {
           <tr role="row">
             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Medicine Name & Category</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dosage Form</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Reorder Threshold</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Current Stock Level</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Unit Price</th>
@@ -64,6 +68,8 @@ export function InventoryTable({ items }: InventoryTableProps) {
                     </span>
                   </td>
 
+                  <td className="px-6 py-4 text-sm text-slate-600">{item.dosage_form || '—'}</td>
+
                   <td className="px-6 py-4">
                     <span className="text-sm font-medium text-slate-600">{item.reorder_level} units</span>
                   </td>
@@ -73,7 +79,7 @@ export function InventoryTable({ items }: InventoryTableProps) {
                   </td>
 
                   <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-slate-600">${Number(item.unit_price || 0).toFixed(2)}</span>
+                    <span className="text-sm font-medium text-slate-600">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(item.unit_price || 0))}</span>
                   </td>
 
                   <td className="px-6 py-4">
@@ -82,15 +88,16 @@ export function InventoryTable({ items }: InventoryTableProps) {
 
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
-                      <button className="flex items-center gap-1 rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors" aria-label={`Edit threshold for ${item.name}`}>
+                      <button type="button" onClick={() => onEdit?.(item)} className="flex items-center gap-1 rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors" aria-label={`Edit ${item.name}`}>
                         <Edit2 className="w-3 h-3" />
-                        Edit Threshold
+                        Edit
                       </button>
 
-                      <button className="flex items-center gap-1 rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors" aria-label={`View batches for ${item.name}`}>
+                      <button type="button" onClick={() => onViewBatches?.(item)} className="flex items-center gap-1 rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors" aria-label={`View batches for ${item.name}`}>
                         <Eye className="w-3 h-3" />
                         View Batches
                       </button>
+                      <button type="button" onClick={() => onArchive?.(item)} className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-100" aria-label={`Archive ${item.name}`}>Archive</button>
                     </div>
                   </td>
                 </tr>
@@ -98,7 +105,7 @@ export function InventoryTable({ items }: InventoryTableProps) {
             })
           ) : (
             <tr>
-              <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
+              <td colSpan={8} className="px-6 py-8 text-center text-slate-400">
                 No items match the current filters
               </td>
             </tr>

@@ -7,6 +7,7 @@ export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const q = medicineListQuerySchema.parse(req.query);
     const result = await medicinesService.listMedicines({
+      pharmacy_id: req.user!.pharmacy_id!,
       search: q.search,
       low_stock: q.low_stock === 'true',
       include_inactive: q.include_inactive === 'true',
@@ -22,7 +23,7 @@ export async function list(req: Request, res: Response, next: NextFunction) {
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const data = medicineCreateSchema.parse(req.body);
-    const row = await medicinesService.createMedicine(data);
+    const row = await medicinesService.createMedicine(data, req.user!.pharmacy_id!);
     res.status(201).json({ data: row, error: null });
   } catch (e) {
     next(e);
@@ -31,7 +32,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
 
 export async function getOne(req: Request, res: Response, next: NextFunction) {
   try {
-    const row = await medicinesService.getMedicine(req.params.id);
+    const row = await medicinesService.getMedicine(req.params.id, req.user!.pharmacy_id!);
     res.json({ data: row, error: null });
   } catch (e) {
     next(e);
@@ -41,7 +42,7 @@ export async function getOne(req: Request, res: Response, next: NextFunction) {
 export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const data = medicineUpdateSchema.parse(req.body);
-    const row = await medicinesService.updateMedicine(req.params.id, data);
+    const row = await medicinesService.updateMedicine(req.params.id, data, req.user!.pharmacy_id!);
     res.json({ data: row, error: null });
   } catch (e) {
     next(e);
@@ -50,7 +51,7 @@ export async function update(req: Request, res: Response, next: NextFunction) {
 
 export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await medicinesService.deleteMedicine(req.params.id);
+    const result = await medicinesService.deleteMedicine(req.params.id, req.user!.pharmacy_id!);
     res.json({ data: result, error: null });
   } catch (e) {
     next(e);

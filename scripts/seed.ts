@@ -4,33 +4,35 @@ async function q(text: string, params: any[] = []) {
   return pool.query(text, params);
 }
 
+let seedPharmacyId = '';
+
 async function getOrCreateMedicine(m: any): Promise<string> {
   const existing = await q(
-    'SELECT id FROM medicines WHERE name=$1 AND strength=$2 AND dosage_form=$3 AND pack_size=$4',
-    [m.name, m.strength, m.dosage_form, m.pack_size],
+    'SELECT id FROM medicines WHERE pharmacy_id=$1 AND name=$2 AND strength=$3 AND dosage_form=$4 AND pack_size=$5',
+    [seedPharmacyId, m.name, m.strength, m.dosage_form, m.pack_size],
   );
   if (existing.rows[0]) return existing.rows[0].id;
   const res = await q(
-    `INSERT INTO medicines (name, strength, dosage_form, pack_size, reorder_level, notes, is_active)
-     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-    [m.name, m.strength, m.dosage_form, m.pack_size, m.reorder_level, m.notes ?? null, true],
+    `INSERT INTO medicines (pharmacy_id, name, strength, dosage_form, pack_size, reorder_level, notes, is_active)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+    [seedPharmacyId, m.name, m.strength, m.dosage_form, m.pack_size, m.reorder_level, m.notes ?? null, true],
   );
   return res.rows[0].id;
 }
 
 async function getOrCreateBatch(medicineId: string, b: any, performedBy: string): Promise<string> {
-  const existing = await q('SELECT id FROM batches WHERE medicine_id=$1 AND batch_number=$2', [medicineId, b.batch_number]);
+  const existing = await q('SELECT id FROM batches WHERE pharmacy_id=$1 AND medicine_id=$2 AND batch_number=$3', [seedPharmacyId, medicineId, b.batch_number]);
   if (existing.rows[0]) return existing.rows[0].id;
   const res = await q(
-    `INSERT INTO batches (medicine_id, batch_number, expiry_date, quantity_packs) VALUES ($1,$2,$3,$4) RETURNING id`,
-    [medicineId, b.batch_number, b.expiry_date, b.quantity_packs],
+    `INSERT INTO batches (pharmacy_id, medicine_id, batch_number, expiry_date, quantity_packs) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+    [seedPharmacyId, medicineId, b.batch_number, b.expiry_date, b.quantity_packs],
   );
   const batchId = res.rows[0].id;
   if (b.quantity_packs > 0) {
     await q(
-      `INSERT INTO stock_movements (batch_id, movement_type, quantity_packs, reason, performed_by)
-       VALUES ($1,'receipt',$2,'Opening stock (seed)',$3)`,
-      [batchId, b.quantity_packs, performedBy],
+      `INSERT INTO stock_movements (pharmacy_id, batch_id, movement_type, quantity_packs, reason, performed_by)
+       VALUES ($1,$2,'receipt',$3,'Opening stock (seed)',$4)`,
+      [seedPharmacyId, batchId, b.quantity_packs, performedBy],
     );
   }
   return batchId;
@@ -44,10 +46,16 @@ function daysFromNow(n: number): string {
 
 async function main() {
   const seedUserId = '00000000-0000-0000-0000-000000000001';
-  await q(
-    `INSERT INTO profiles (id, full_name, role) VALUES ($1,'Seed Admin','admin')
-     ON CONFLICT (id) DO NOTHING`,
+  const pharmacy = await q(
+    `INSERT INTO pharmacies (name, license_number, owner_id) VALUES ('Seed Demo Pharmacy','SEED-DEMO-PHARMACY',$1)
+     ON CONFLICT (license_number) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
     [seedUserId],
+  );
+  seedPharmacyId = pharmacy.rows[0].id;
+  await q(
+    `INSERT INTO profiles (id, full_name, role, pharmacy_id) VALUES ($1,'Seed Admin','admin',$2)
+     ON CONFLICT (id) DO UPDATE SET pharmacy_id = EXCLUDED.pharmacy_id`,
+    [seedUserId, seedPharmacyId],
   );
 
   const medicines = [
@@ -114,25 +122,26 @@ async function main() {
 
   // Movements history (idempotent: skip if already seeded)
   const alreadySeeded = await q(
-    "SELECT 1 FROM stock_movements WHERE batch_id IN (SELECT id FROM batches WHERE batch_number='PCT-001') AND reason='Dispensing (seed)' LIMIT 1",
+    "SELECT 1 FROM stock_movements WHERE pharmacy_id=$1 AND batch_id IN (SELECT id FROM batches WHERE pharmacy_id=$1 AND batch_number='PCT-001') AND reason='Dispensing (seed)' LIMIT 1",
+    [seedPharmacyId],
   );
   if (!alreadySeeded.rows[0]) {
-    const pctBatch = await q("SELECT id, quantity_packs FROM batches WHERE batch_number='PCT-001'");
+    const pctBatch = await q("SELECT id, quantity_packs FROM batches WHERE pharmacy_id=$1 AND batch_number='PCT-001'", [seedPharmacyId]);
     if (pctBatch.rows[0]) {
       const bid = pctBatch.rows[0].id;
       const cur = pctBatch.rows[0].quantity_packs;
       if (cur >= 5) {
         await q(
-          `INSERT INTO stock_movements (batch_id, movement_type, quantity_packs, reason, performed_by, created_at)
-           VALUES ($1,'issue',$2,'Dispensing (seed)',$3, now() - interval '7 days')`,
-          [bid, -5, seedUserId],
+          `INSERT INTO stock_movements (pharmacy_id, batch_id, movement_type, quantity_packs, reason, performed_by, created_at)
+           VALUES ($1,$2,'issue',$3,'Dispensing (seed)',$4, now() - interval '7 days')`,
+          [seedPharmacyId, bid, -5, seedUserId],
         );
         await q('UPDATE batches SET quantity_packs = quantity_packs - 5 WHERE id = $1', [bid]);
       }
       await q(
-        `INSERT INTO stock_movements (batch_id, movement_type, quantity_packs, reason, performed_by, created_at)
-         VALUES ($1,'adjustment',$2,'Stock count correction (seed)',$3, now() - interval '3 days')`,
-        [bid, -2, seedUserId],
+          `INSERT INTO stock_movements (pharmacy_id, batch_id, movement_type, quantity_packs, reason, performed_by, created_at)
+         VALUES ($1,$2,'adjustment',$3,'Stock count correction (seed)',$4, now() - interval '3 days')`,
+        [seedPharmacyId, bid, -2, seedUserId],
       );
       await q('UPDATE batches SET quantity_packs = quantity_packs - 2 WHERE id = $1', [bid]);
     }

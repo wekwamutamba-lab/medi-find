@@ -8,6 +8,7 @@ const router = Router();
 router.use(authMiddleware);
 
 router.post('/batches/:id/movements', validate(movementCreateSchema), controller.create);
+router.get('/movements', controller.listAll);
 router.get('/medicines/:id/movements', controller.list);
 
 export default router;

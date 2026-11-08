@@ -29,7 +29,7 @@ export interface AiAskResult {
   conversation_id: string;
 }
 
-export async function askAi(userId: string, question: string, conversationId?: string): Promise<AiAskResult> {
+export async function askAi(userId: string, pharmacyId: string, question: string, conversationId?: string): Promise<AiAskResult> {
   if (!isAiConfigured()) {
     throw new AppError(503, 'AI_UNAVAILABLE', 'AI features are not configured');
   }
@@ -117,7 +117,7 @@ export async function askAi(userId: string, question: string, conversationId?: s
 
         let result: any;
         try {
-          result = await toolHandlers[name](validArgs);
+          result = await toolHandlers[name](validArgs, pharmacyId);
         } catch (e) {
           console.error('Tool handler error:', e);
           result = { error: 'Tool execution failed' };

@@ -1,36 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getStoredAccessToken } from '../api';
+import { getMovements } from '../api';
 import { MovementsControls } from '../components/MovementsControls';
 import { MovementsTable } from '../components/MovementsTable';
 
-const demoMovements = [
-  { id: 'm1', medicine_name: 'Paracetamol 500mg', strength: '500 mg', batch_number: 'PC-1042', movement_type: 'RECEIPT', quantity_change: 40, reason: 'Supplier delivery', performed_by: 'S. Singh', created_at: '2026-11-05T09:35:00.000Z' },
-  { id: 'm2', medicine_name: 'Amoxicillin 250mg', strength: '250 mg', batch_number: 'AM-8821', movement_type: 'ISSUE', quantity_change: 18, reason: 'Ward dispensing', performed_by: 'M. Jones', created_at: '2026-11-04T08:15:00.000Z' },
-  { id: 'm3', medicine_name: 'Salbutamol Inhaler', strength: '100 mcg', batch_number: 'SB-7714', movement_type: 'QUARANTINE', quantity_change: 2, reason: 'Damaged packaging identified', performed_by: 'N. Patel', created_at: '2026-11-03T12:00:00.000Z' },
-  { id: 'm4', medicine_name: 'Metformin 500mg', strength: '500 mg', batch_number: 'MT-3316', movement_type: 'ADJUSTMENT', quantity_change: 5, reason: 'Shelf count correction', performed_by: 'R. Ali', created_at: '2026-11-02T11:45:00.000Z' },
-];
-
-function getAuthHeaders(): Record<string, string> {
-  const token = getStoredAccessToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 async function fetchMovements() {
   try {
-    const response = await fetch('/api/batches', {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(getAuthHeaders() as Record<string, string>),
-      } as HeadersInit,
-    });
-    if (!response.ok) {
-      if (response.status === 401) return demoMovements;
-      throw new Error('Unable to load movements');
-    }
-    return demoMovements;
-  } catch (error) {
-    console.warn('Using demo movement fallback:', error);
-    return demoMovements;
+    const result = await getMovements(1, 100);
+    return result.items.map((movement) => ({
+      ...movement,
+      movement_type: movement.movement_type.toUpperCase(),
+      quantity_change: movement.quantity_packs,
+      performed_by: (movement as typeof movement & { performed_by_name?: string }).performed_by_name || movement.performed_by || 'System',
+    }));
+  } catch {
+    return [];
   }
 }
 
@@ -90,7 +73,7 @@ export function MovementsPage() {
         <div>
           <div className="eyebrow"><span className="preview-badge"><span /> Audit log</span></div>
           <h1>Stock Movements Audit Log</h1>
-          <p className="page-subtitle">Review receipts, issues, adjustments, and quarantines across the stock ledger.</p>
+          <p className="page-subtitle">Immutable audit history of receipts, issues, and adjustments across your pharmacy.</p>
         </div>
       </div>
 

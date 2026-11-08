@@ -1,7 +1,8 @@
-export type Role = 'admin' | 'pharmacist';
+export type Role = 'admin' | 'pharmacist' | 'staff';
 
 export interface Profile {
   id: string;
+  pharmacy_id: string;
   full_name: string;
   role: Role;
   created_at: string;
@@ -27,6 +28,7 @@ export interface Batch {
   id: string;
   medicine_id: string;
   batch_number: string;
+  manufacturing_date?: string | null;
   expiry_date: string;
   quantity_packs: number;
   created_at: string;
@@ -54,6 +56,7 @@ export interface AuthUser {
   id: string;
   email: string;
   role: Role;
+  pharmacy_id: string | null;
 }
 
 declare global {
