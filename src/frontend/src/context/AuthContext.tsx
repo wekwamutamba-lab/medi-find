@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { authConfigured, getProfile, onboardPharmacy, readSession, signIn as apiSignIn, signOut as apiSignOut, signUp as apiSignUp, startDemoSession, type Profile } from '../api';
+import { authConfigured, getProfile, onboardPharmacy, readSession, signIn as apiSignIn, signOut as apiSignOut, signUp as apiSignUp, startDemoSession, type Profile, writeSession } from '../api';
 
 export type UserRole = 'pharmacist' | 'staff' | 'admin';
 
@@ -77,13 +77,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     let isMounted = true;
 
+    const parseHashSession = () => {
+      const hash = window.location.hash.replace(/^#/, '');
+      if (!hash) return false;
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      if (!accessToken) return false;
+      writeSession({ access_token: accessToken, refresh_token: refreshToken || '', expires_at: Date.now() + 3600 * 1000 });
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      return true;
+    };
+
     const initAuth = async () => {
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Auth timeout')), 5000),
       );
 
       try {
-        await Promise.race([loadProfile(), timeoutPromise]);
+        if (!parseHashSession()) {
+          await Promise.race([loadProfile(), timeoutPromise]);
+        } else {
+          await Promise.race([loadProfile(), timeoutPromise]);
+        }
       } catch (err) {
         console.warn('Auth check bypassed or timed out:', err);
       } finally {

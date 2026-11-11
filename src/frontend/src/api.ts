@@ -93,7 +93,7 @@ export function readSession(): Session | null {
   }
 }
 
-function writeSession(session: Session | null) {
+export function writeSession(session: Session | null) {
   if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   else localStorage.removeItem(SESSION_KEY);
 }
