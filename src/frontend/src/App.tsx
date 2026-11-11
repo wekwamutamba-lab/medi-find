@@ -102,8 +102,16 @@ export default function App() {
   useEffect(() => {
     if (!authenticated) { setProfile(null); return; }
     let cancelled = false;
-    getProfile().then((result) => { if (!cancelled) setProfile(result); }).catch((error) => { if (!cancelled) { signOut(); setAuthenticated(false); setLoadError(errorMessage(error)); } });
-    return () => { cancelled = true; };
+    const timeout = window.setTimeout(() => {
+      if (cancelled) return;
+      console.warn('Profile fetch timed out; keeping user signed in.');
+      setLoadError('Profile check timed out. Please retry.');
+    }, 8000);
+    getProfile()
+      .then((result) => { if (!cancelled) setProfile(result); })
+      .catch((error) => { if (!cancelled) setLoadError(errorMessage(error)); })
+      .finally(() => { if (!cancelled) window.clearTimeout(timeout); });
+    return () => { cancelled = true; window.clearTimeout(timeout); };
   }, [authenticated]);
 
   useEffect(() => {
