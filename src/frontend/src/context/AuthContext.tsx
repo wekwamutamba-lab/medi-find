@@ -1,5 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { authConfigured, getProfile, onboardPharmacy, readSession, signIn as apiSignIn, signOut as apiSignOut, signUp as apiSignUp, startDemoSession, type Profile, writeSession } from '../api';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 
 export type UserRole = 'pharmacist' | 'staff' | 'admin';
 
@@ -31,131 +30,25 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthContextType['user']>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthContextType['user']>({ id: 'demo-user', email: 'demo@pharmacy.local' });
+  const [profile, setProfile] = useState<UserProfile | null>({
+    id: 'demo-user',
+    full_name: 'Demo Pharmacist',
+    role: 'admin',
+    email: 'demo@pharmacy.local',
+    pharmacy_name: 'Demo Pharmacy',
+  });
+  const [loading, setLoading] = useState(false);
 
-  const loadProfile = async () => {
-    const session = readSession();
-    if (!session) {
-      setUser(null);
-      setProfile(null);
-      return;
-    }
+  const loadProfile = async () => { /* demo mode: no-op */ };
 
-    if (session.access_token === 'demo-token' || session.access_token === 'demo') {
-      setUser({ id: 'demo-user', email: 'demo@pharmacy.local' });
-      setProfile({ id: 'demo-user', full_name: 'Demo Pharmacist', role: 'admin', email: 'demo@pharmacy.local', pharmacy_name: 'Demo Pharmacy' });
-      return;
-    }
-
-    try {
-      const data: Profile | null = await getProfile();
-      if (!data) {
-        apiSignOut();
-        setUser(null);
-        setProfile(null);
-        return;
-      }
-      const nextProfile = {
-        id: data.id,
-        full_name: data.full_name,
-        role: data.role as UserRole,
-        email: '',
-        pharmacy_id: data.pharmacy_id,
-        pharmacy_name: data.pharmacy_name,
-      };
-      setProfile(nextProfile);
-      setUser({ id: data.id, email: '' });
-    } catch {
-      apiSignOut();
-      setUser(null);
-      setProfile(null);
-    }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const parseHashSession = () => {
-      const hash = window.location.hash.replace(/^#/, '');
-      if (!hash) return false;
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-      if (!accessToken) return false;
-      writeSession({ access_token: accessToken, refresh_token: refreshToken || '', expires_at: Date.now() + 3600 * 1000 });
-      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-      return true;
-    };
-
-    const initAuth = async () => {
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Auth timeout')), 5000),
-      );
-
-      try {
-        if (!parseHashSession()) {
-          await Promise.race([loadProfile(), timeoutPromise]);
-        } else {
-          await Promise.race([loadProfile(), timeoutPromise]);
-        }
-      } catch (err) {
-        console.warn('Auth check bypassed or timed out:', err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    initAuth();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const signIn = async (email: string, password: string) => {
-    if (!authConfigured) throw new Error('Production sign-in requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY. Choose the demo sandbox instead.');
-    await apiSignIn(email, password);
-    const pending = localStorage.getItem('medifind.pending-pharmacy');
-    if (pending) {
-      await onboardPharmacy(JSON.parse(pending));
-      localStorage.removeItem('medifind.pending-pharmacy');
-    }
-    await loadProfile();
-  };
-
-  const startDemo = async () => {
-    startDemoSession();
-    await loadProfile();
-  };
-
-  const signUp = async (email: string, password: string, fullName: string, mode: 'demo' | 'production', pharmacyName = '', licenseNumber = '') => {
-    if (mode === 'demo') {
-      startDemoSession();
-      await loadProfile();
-      return true;
-    }
-    if (!authConfigured) throw new Error('Production setup requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
-    const pending = { full_name: fullName, pharmacy_name: pharmacyName, license_number: licenseNumber };
-    const hasSession = await apiSignUp(fullName, email, password);
-    if (!hasSession) {
-      localStorage.setItem('medifind.pending-pharmacy', JSON.stringify(pending));
-      return false;
-    }
-    await onboardPharmacy(pending);
-    await loadProfile();
-    return true;
-  };
-
-  const signOut = async () => {
-    apiSignOut();
-    setUser(null);
-    setProfile(null);
-  };
+  const signIn = async () => { /* demo mode: no-op */ };
+  const startDemo = async () => { /* demo mode: no-op */ };
+  const signUp = async () => { return true; };
+  const signOut = async () => { /* demo mode: no-op */ };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, startDemo, signOut, signUp }}>
+    <AuthContext.Provider value={{ user, profile, loading, signIn, startDemo, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

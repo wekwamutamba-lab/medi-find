@@ -70,7 +70,7 @@ function Loading({ label = 'Loading inventory…' }: { label?: string }) { retur
 function Empty({ title, text }: { title: string; text: string }) { return <div className="empty-state"><span className="empty-icon"><Boxes size={20} /></span><strong>{title}</strong><span>{text}</span></div>; }
 
 export default function App() {
-  const [authenticated, setAuthenticated] = useState(Boolean(readSession()));
+  const [authenticated] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [activePage, setActivePage] = useState<Page>('Dashboard');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -181,8 +181,8 @@ export default function App() {
   };
   const doSignOut = () => { signOut(); setAuthenticated(false); setProfile(null); setActivePage('Dashboard'); };
 
-  if (!authenticated) return <LoginScreen onAuthenticated={() => { setAuthenticated(true); setLoadError(''); }} />;
-  if (!profile) return <main className="auth-screen"><Loading label="Checking your account…" />{loadError && <p className="inline-message">{loadError}</p>}</main>;
+  if (!authenticated) return null;
+  if (!profile) return null;
 
   const pageSubtitle: Record<Page, string> = {
     Dashboard: 'A live view of stock, expiry and work needing attention.', Medicines: 'Manage your medicine catalog, reorder levels and active items.',
