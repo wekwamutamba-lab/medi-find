@@ -6,7 +6,7 @@ import { MovementsTable } from '../components/MovementsTable';
 async function fetchMovements() {
   try {
     const result = await getMovements(1, 100);
-    return result.items.map((movement) => ({
+    return result.items.map((movement: any) => ({
       ...movement,
       movement_type: movement.movement_type.toUpperCase(),
       quantity_change: movement.quantity_packs,

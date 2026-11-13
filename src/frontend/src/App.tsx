@@ -42,7 +42,7 @@ function downloadCsv(filename: string, rows: unknown[][]) {
 function Sidebar({ activePage, profile, onNavigate, onClose, onSignOut }: { activePage: Page; profile: Profile; onNavigate: (page: Page) => void; onClose?: () => void; onSignOut: () => void }) {
   return <>
     <a className="brand" href="#dashboard" onClick={(event) => { event.preventDefault(); onNavigate('Dashboard'); onClose?.(); }}><span className="brand-mark"><span>m</span></span><span className="brand-name">MediFind<span className="brand-ai">AI</span></span><span className="sidebar-collapse"><ChevronLeft size={16} /></span></a>
-    <nav className="side-nav" aria-label="Main navigation">{navGroups.map((group) => <div className="nav-group" key={group.title ?? 'home'}>{'title' in group && <p className="nav-heading">{group.title}</p>}{group.items.map(({ label, icon: Icon }) => <button className={`nav-link ${activePage === label ? 'active' : ''}`} key={label} type="button" onClick={() => { onNavigate(label); onClose?.(); }}><Icon size={17} strokeWidth={1.8} /><span>{label}</span>{label === 'Alerts' && <span className="nav-count">!</span>}</button>)}</div>)}</nav>
+    <nav className="side-nav" aria-label="Main navigation">{navGroups.map((group, gi) => <div className="nav-group" key={String(gi)}>{'title' in group && <p className="nav-heading">{group.title}</p>}{group.items.map(({ label, icon: Icon }) => <button className={`nav-link ${activePage === label ? 'active' : ''}`} key={label} type="button" onClick={() => { onNavigate(label); onClose?.(); }}><Icon size={17} strokeWidth={1.8} /><span>{label}</span>{label === 'Alerts' && <span className="nav-count">!</span>}</button>)}</div>)}</nav>
     <div className="sidebar-bottom"><div className="help-card"><span className="help-icon"><CircleHelp size={17} /></span><div><strong>Need a hand?</strong><span>Ask the inventory assistant</span></div><ArrowRight size={15} /></div><button className={`nav-link settings-link ${activePage === 'Settings' ? 'active' : ''}`} type="button" onClick={() => { onNavigate('Settings'); onClose?.(); }}><Settings2 size={17} /><span>Settings</span></button><div className="sidebar-user"><div className="avatar avatar-small">{(profile.full_name || 'U').slice(0, 1).toUpperCase()}</div><div className="sidebar-user-copy"><strong>{profile.full_name || 'User'}</strong><span>{profile.role}</span></div><button className="icon-button signout-button" title="Sign out" onClick={onSignOut}><LogOut size={14} /></button></div></div>
   </>;
 }
@@ -70,7 +70,7 @@ function Loading({ label = 'Loading inventory…' }: { label?: string }) { retur
 function Empty({ title, text }: { title: string; text: string }) { return <div className="empty-state"><span className="empty-icon"><Boxes size={20} /></span><strong>{title}</strong><span>{text}</span></div>; }
 
 export default function App() {
-  const [authenticated] = useState(true);
+  const [authenticated, setAuthenticated] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [activePage, setActivePage] = useState<Page>('Dashboard');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -115,7 +115,7 @@ export default function App() {
   }, [authenticated]);
 
   useEffect(() => {
-    if (!authenticated || !profile) return;
+    if (!authenticated) return;
     let cancelled = false;
     setLoading(true); setLoadError('');
     const load = async () => {
@@ -126,7 +126,7 @@ export default function App() {
         ]);
         if (cancelled) return;
         setMedicines(medicineData.items); setBatches(batchData); setMovements(movementData.items); setSummary(attention);
-        if (profile.role === 'admin') {
+        if (profile?.role === 'admin') {
           try { const alertSettings = await request<AlertSettings>('/alerts/settings'); if (!cancelled) { setSettings(alertSettings); setSettingsDays(String(alertSettings.expiry_warning_days)); } } catch { /* settings are only shown to admins */ }
         }
       } catch (error) { if (!cancelled) setLoadError(errorMessage(error)); }

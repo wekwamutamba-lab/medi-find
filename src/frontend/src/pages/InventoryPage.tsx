@@ -33,7 +33,7 @@ async function fetchInventoryItems(filters: { search?: string; category?: string
   const { search = '', category = 'All Categories', stockFilter = 'all' } = filters;
 
   try {
-    const result = await getMedicines({ search, limit: 100, lowStock: stockFilter === 'low' });
+    const result = await getMedicines({ search, limit: 100, low_stock: stockFilter === 'low' });
     const items = result.items.filter((item) => category === 'All Categories' || item.category === category);
 
     return {

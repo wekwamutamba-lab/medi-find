@@ -43,8 +43,8 @@ export async function createSale(data: SaleInput, pharmacyId: string, performedB
 
     for (const item of prepared) {
       let remaining = item.quantity_packs;
-      const batchesResult = await client.query<{ id: string; quantity_packs: number }>(
-        `SELECT id, quantity_packs FROM batches
+      const batchesResult = await client.query<{ id: string; quantity_packs: number; unit_cost: string | number }>(
+        `SELECT id, quantity_packs, unit_cost FROM batches
          WHERE pharmacy_id = $1 AND medicine_id = $2 AND expiry_date >= CURRENT_DATE AND quantity_packs > 0
          ORDER BY expiry_date ASC, created_at ASC FOR UPDATE`,
         [pharmacyId, item.medicine_id],
@@ -58,12 +58,16 @@ export async function createSale(data: SaleInput, pharmacyId: string, performedB
            VALUES ($1,$2,'issue',$3,$4,$5)`,
           [pharmacyId, batch.id, -issued, `Sale ${sale.id}`, performedBy],
         );
+        const batch_cost = batch.unit_cost ?? 0;
+        const batch_cost_num = typeof batch_cost === 'string' ? Number(batch_cost) : batch_cost;
+        const line_total = Math.round(item.unit_price * issued * 100) / 100;
+        const line_cost = Math.round(batch_cost_num * issued * 100) / 100;
         await client.query(
-          `INSERT INTO sale_items (pharmacy_id, sale_id, medicine_id, batch_id, quantity_packs, unit_price, line_total)
-           VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-          [pharmacyId, sale.id, item.medicine_id, batch.id, issued, item.unit_price, Math.round(item.unit_price * issued * 100) / 100],
+          `INSERT INTO sale_items (pharmacy_id, sale_id, medicine_id, batch_id, quantity_packs, unit_price, line_total, cost_price, line_cost)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+          [pharmacyId, sale.id, item.medicine_id, batch.id, issued, item.unit_price, line_total, batch_cost_num, line_cost],
         );
-        saleLines.push({ medicine_id: item.medicine_id, medicine_name: item.name, batch_id: batch.id, quantity_packs: issued, unit_price: item.unit_price });
+        saleLines.push({ medicine_id: item.medicine_id, medicine_name: item.name, batch_id: batch.id, quantity_packs: issued, unit_price: item.unit_price, cost_price: batch_cost_num });
         remaining -= issued;
       }
       if (remaining > 0) throw new AppError(422, 'INSUFFICIENT_STOCK', `Insufficient unexpired stock for ${item.name}. No sale was recorded.`);
@@ -105,7 +109,7 @@ export async function getSalesAnalytics(pharmacyId: string, range: 'today' | 'we
     start.setTime(parsed.getTime()); start.setHours(0, 0, 0, 0); end.setTime(start.getTime()); end.setDate(end.getDate() + 1);
   }
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const [allTime, period, month, transactions, inventory, expiring, topSelling, trend] = await Promise.all([
+  const [allTime, period, month, transactions, inventory, expiring, topSelling, trend, cogs, inventoryValue] = await Promise.all([
     queryOne<{ total: string }>('SELECT COALESCE(SUM(total_amount),0)::text AS total FROM sales WHERE pharmacy_id=$1 AND status=\'completed\'', [pharmacyId]),
     queryOne<{ total: string }>('SELECT COALESCE(SUM(total_amount),0)::text AS total FROM sales WHERE pharmacy_id=$1 AND status=\'completed\' AND created_at >= $2 AND created_at < $3', [pharmacyId, start, end]),
     queryOne<{ total: string }>('SELECT COALESCE(SUM(total_amount),0)::text AS total FROM sales WHERE pharmacy_id=$1 AND status=\'completed\' AND created_at >= $2', [pharmacyId, monthStart]),
@@ -124,10 +128,28 @@ export async function getSalesAnalytics(pharmacyId: string, range: 'today' | 'we
        FROM sales WHERE pharmacy_id=$1 AND status='completed' AND created_at >= now() - interval '6 days'
        GROUP BY created_at::date ORDER BY day`, [pharmacyId],
     ),
+    queryOne<{ cogs: string }>(
+      "SELECT COALESCE(SUM(si.line_cost),0)::text AS cogs FROM sale_items si JOIN sales s ON s.id=si.sale_id AND s.pharmacy_id=si.pharmacy_id WHERE si.pharmacy_id=$1 AND s.status='completed'",
+      [pharmacyId],
+    ),
+    queryOne<{ value: string }>('SELECT COALESCE(SUM(quantity_packs * unit_cost),0)::text AS value FROM batches WHERE pharmacy_id=$1 AND expiry_date >= CURRENT_DATE AND quantity_packs > 0', [pharmacyId]),
   ]);
+  // Financial summary derived from recorded sales and sale-item costs (gross, not net of operating expenses).
+  const totalRevenue = Number(allTime?.total ?? 0);
+  const totalCogs = Number(cogs?.cogs ?? 0);
+  const grossProfit = totalRevenue - totalCogs;
+  const grossProfitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
   return {
-    total_revenue: Number(allTime?.total ?? 0), period_sales: Number(period?.total ?? 0), monthly_sales: Number(month?.total ?? 0),
-    transactions: transactions?.count ?? 0, active_inventory_count: inventory?.count ?? 0, expiring_batches_count: expiring?.count ?? 0,
+    total_revenue: totalRevenue,
+    total_cogs: totalCogs,
+    gross_profit: grossProfit,
+    gross_profit_margin: Math.round(grossProfitMargin * 100) / 100,
+    period_sales: Number(period?.total ?? 0),
+    monthly_sales: Number(month?.total ?? 0),
+    transactions: transactions?.count ?? 0,
+    active_inventory_count: inventory?.count ?? 0,
+    expiring_batches_count: expiring?.count ?? 0,
+    inventory_value: Number(inventoryValue?.value ?? 0),
     top_selling: topSelling.rows.map((item) => ({ ...item, revenue: Number(item.revenue) })),
     sales_trend: trend.rows.map((item) => ({ day: item.day, revenue: Number(item.revenue) })),
   };

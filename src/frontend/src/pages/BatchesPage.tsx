@@ -27,7 +27,7 @@ export function BatchesPage() {
     void fetchBatches().then(setBatches);
     void getMedicines({ limit: 100 }).then((result) => setMedicines(result.items));
     void getAlertsSummary().then((summary) => {
-      setLowStockMedicines(summary.low_stock.items.map((medicine) => ({ id: medicine.id, name: medicine.name })));
+      setLowStockMedicines(summary.low_stock.items.map((medicine: Medicine & { usable_stock: number }) => ({ id: medicine.id, name: medicine.name })));
     }).catch(() => {
       setLowStockMedicines([{ id: '', name: 'Amoxicillin' }]);
     });

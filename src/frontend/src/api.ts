@@ -5,15 +5,23 @@ export interface Profile {
   full_name: string;
   role: Role;
   created_at: string;
+  pharmacy_id?: string | null;
+  pharmacy_name?: string | null;
 }
 
 export interface Medicine {
   id: string;
   name: string;
+  brand_name?: string | null;
+  generic_name?: string | null;
+  category?: string | null;
   strength: string;
   dosage_form: string;
   pack_size: number;
+  purchase_price?: number;
+  unit_price: number;
   reorder_level: number;
+  min_stock_level?: number;
   notes: string | null;
   is_active: boolean;
   usable_stock?: number;
@@ -65,12 +73,32 @@ interface ApiEnvelope<T> {
   error: { code?: string; message?: string } | null;
 }
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/$/, '');
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const rawApiBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
+const rawSupabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const rawSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+function isPlaceholder(value: string) {
+  const v = value.trim().toLowerCase();
+  return !v || v.includes('your_project') || v.includes('your-project') || v.includes('your_supabase') || v === 'changeme' || v === 'replace_me';
+}
+
+export const frontendConfigIssues: string[] = [];
+const isProd = import.meta.env.PROD;
+if (isPlaceholder(rawSupabaseUrl)) frontendConfigIssues.push('VITE_SUPABASE_URL is missing or not configured.');
+if (isPlaceholder(rawSupabaseAnonKey)) frontendConfigIssues.push('VITE_SUPABASE_ANON_KEY is missing or not configured.');
+if (isPlaceholder(rawApiBase)) {
+  frontendConfigIssues.push(isProd ? 'VITE_API_URL is required in production (localhost default is not used).' : 'VITE_API_URL is not configured; using local development API URL.');
+} else if (isProd && /localhost|127\.0\.0\.1/i.test(rawApiBase)) {
+  frontendConfigIssues.push('VITE_API_URL must not point to localhost in production.');
+}
+
+const API_BASE = ((isPlaceholder(rawApiBase) ? (isProd ? '' : 'http://localhost:4000/api') : rawApiBase)).replace(/\/$/, '');
+const SUPABASE_URL = rawSupabaseUrl.replace(/\/$/, '');
+const SUPABASE_ANON_KEY = rawSupabaseAnonKey;
 const SESSION_KEY = 'medifind.session';
 
-export const authConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+export const authConfigured = !isPlaceholder(SUPABASE_URL) && !isPlaceholder(SUPABASE_ANON_KEY);
+export const apiConfigured = Boolean(API_BASE);
 
 export class ApiError extends Error {
   status: number;
@@ -99,7 +127,9 @@ export function writeSession(session: Session | null) {
 }
 
 async function supabaseAuth(path: string, body: Record<string, unknown>) {
-  if (!authConfigured) throw new ApiError('Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable sign-in.');
+  if (frontendConfigIssues.length) throw new ApiError(frontendConfigIssues.join(' '));
+  if (!authConfigured) throw new ApiError('Authentication is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+  if (!apiConfigured && import.meta.env.PROD) throw new ApiError('API connection is not configured. Set VITE_API_URL.');
   const response = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
@@ -157,6 +187,7 @@ async function validAccessToken() {
 }
 
 export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  if (!apiConfigured) throw new ApiError(import.meta.env.PROD ? 'API connection is not configured. Set VITE_API_URL.' : 'API connection is not configured.');
   let token = await validAccessToken();
   const send = (accessToken: string) => fetch(`${API_BASE}${path}`, {
     ...options,
@@ -191,10 +222,11 @@ export async function getProfile() {
   return request<Profile>('/auth/me');
 }
 
-export async function getMedicines(options: { search?: string; includeInactive?: boolean; page?: number; limit?: number } = {}) {
+export async function getMedicines(options: { search?: string; includeInactive?: boolean; low_stock?: boolean; page?: number; limit?: number } = {}) {
   const params = new URLSearchParams({ page: String(options.page || 1), limit: String(options.limit || 100) });
   if (options.search) params.set('search', options.search);
   if (options.includeInactive) params.set('include_inactive', 'true');
+  if (options.low_stock) params.set('low_stock', 'true');
   return request<{ items: Medicine[]; total: number; page: number; limit: number }>(`/medicines?${params}`);
 }
 
@@ -232,10 +264,9 @@ export async function getDashboardMetrics() {
 
 export type ContactRecord = any;
 export type SaleRecord = any;
-export type AttentionSummary = any;
-export function startDemoSession() { localStorage.setItem('medifind.session', JSON.stringify({ access_token: 'demo', refresh_token: 'demo', expires_at: Date.now() + 86400000 })); }
+export function startDemoSession() { localStorage.setItem('medifind.session', JSON.stringify({ access_token: 'demo-token', refresh_token: 'demo-token', expires_at: Date.now() + 86400000 })); }
 export async function askAi(prompt: string) { return request<any>('/ai/ask', { method: 'POST', body: JSON.stringify({ prompt }) }); }
-export async function createBatch(data: any) { return request<any>('/batches', { method: 'POST', body: JSON.stringify(data) }); }
+export async function createBatch(medicineId: string, data: any) { return request<any>(`/medicines/${medicineId}/batches`, { method: 'POST', body: JSON.stringify(data) }); }
 export async function getAlertsSummary() { return request<any>('/alerts/summary'); }
 export async function createCustomer(data: any) { return request<any>('/customers', { method: 'POST', body: JSON.stringify(data) }); }
 export async function deleteCustomer(id: string) { return request<any>(`/customers/${id}`, { method: 'DELETE' }); }

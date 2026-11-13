@@ -13,13 +13,24 @@ import alertsRoutes from './routes/alerts.routes';
 import aiRoutes from './routes/ai.routes';
 import salesRoutes from './routes/sales.routes';
 import directoryRoutes from './routes/directory.routes';
+import purchaseOrdersRoutes from './routes/purchase_orders.routes';
 
 const app = express();
+
+const allowedOrigins = (env.FRONTEND_URL || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 app.use(helmet());
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => {
+      // Allow non-browser/server-to-server requests with no Origin header.
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('Origin not allowed by CORS'));
+    },
     credentials: true,
   }),
 );
@@ -42,6 +53,7 @@ app.use('/api', alertsRoutes);
 app.use('/api', aiRoutes);
 app.use('/api', salesRoutes);
 app.use('/api', directoryRoutes);
+app.use('/api', purchaseOrdersRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ data: null, error: { code: 'NOT_FOUND', message: 'Route not found' } });

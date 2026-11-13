@@ -11,29 +11,38 @@ export async function onboard(req: Request, res: Response, next: NextFunction) {
     }
 
     const result = await withTransaction(async (client) => {
-      const pharmacy = await client.query(
-        'INSERT INTO pharmacies (name, license_number, owner_id) VALUES ($1,$2,$3) RETURNING id, name, license_number',
-        [pharmacy_name, license_number, req.user!.id],
+      // Single-pharmacy system: reuse the existing/central pharmacy record when present; never create a second one.
+      const central = await client.query<{ id: string; name: string; license_number: string | null }>(
+        'SELECT id, name, license_number FROM pharmacies ORDER BY created_at ASC LIMIT 1 FOR UPDATE',
       );
-      const pharmacyId = pharmacy.rows[0].id as string;
+      let pharmacy = central.rows[0];
+      if (!pharmacy) {
+        const created = await client.query(
+          'INSERT INTO pharmacies (name, license_number, owner_id) VALUES ($1,$2,$3) RETURNING id, name, license_number',
+          [pharmacy_name, license_number, req.user!.id],
+        );
+        pharmacy = created.rows[0];
+      }
+      const pharmacyId = pharmacy.id as string;
+      // First/initial administrator for the central pharmacy is associated here as admin (owner_id set on creation).
       await client.query(
         `INSERT INTO profiles (id, full_name, role, pharmacy_id)
          VALUES ($1,$2,'admin',$3)
          ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = 'admin', pharmacy_id = EXCLUDED.pharmacy_id, updated_at = now()`,
         [req.user!.id, full_name, pharmacyId],
       );
-      return pharmacy.rows[0];
+      return pharmacy;
     });
     res.status(201).json({ data: result, error: null });
   } catch (e: any) {
-    if (e.code === '23505') return res.status(409).json({ data: null, error: { code: 'PHARMACY_EXISTS', message: 'That license or registration ID is already registered.' } });
+    if (e.code === '23505') return res.status(409).json({ data: null, error: { code: 'PHARMACY_EXISTS', message: 'A pharmacy record already exists for this system.' } });
     next(e);
   }
 }
 
 export async function me(req: Request, res: Response, next: NextFunction) {
   try {
-    const row = await queryOne('SELECT p.*, ph.name AS pharmacy_name FROM profiles p LEFT JOIN pharmacies ph ON ph.id = p.pharmacy_id WHERE p.id = $1 AND p.pharmacy_id = $2', [req.user!.id, req.user!.pharmacy_id]);
+    const row = await queryOne('SELECT p.*, ph.name AS pharmacy_name FROM profiles p LEFT JOIN pharmacies ph ON ph.id = p.pharmacy_id WHERE p.id = $1', [req.user!.id]);
     res.json({ data: row, error: null });
   } catch (e) { next(e); }
 }
