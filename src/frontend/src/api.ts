@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'pharmacist';
+export type Role = 'admin' | 'pharmacist' | 'staff';
 
 export interface Profile {
   id: string;

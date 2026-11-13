@@ -3,6 +3,26 @@ import jwt from 'jsonwebtoken';
 import { queryOne } from '../db/query';
 import { AuthUser } from '../types';
 
+// Authoritative list of supported roles
+export const VALID_ROLES = ['admin', 'pharmacist', 'staff'] as const;
+
+export type Role = typeof VALID_ROLES[number];
+
+export function isValidRole(role: unknown): role is Role {
+  return (
+    typeof role === 'string' &&
+    VALID_ROLES.includes(role.trim().toLowerCase() as Role)
+  );
+}
+
+export function normalizeRole(role: string): Role {
+  const normalized = role.trim().toLowerCase() as Role;
+  if (!VALID_ROLES.includes(normalized)) {
+    throw new Error(`Unsupported role: ${role}`);
+  }
+  return normalized;
+}
+
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
@@ -38,7 +58,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     const user: AuthUser = {
       id: profile.id,
       email: decoded.email || '',
-      role: profile.role as any,
+      role: normalizeRole(profile.role),
       pharmacy_id: profile.pharmacy_id,
     };
     req.user = user;
