@@ -1,0 +1,216 @@
+[1mdiff --git a/package-lock.json b/package-lock.json[m
+[1mindex cd398bf..1d70d42 100644[m
+[1m--- a/package-lock.json[m
+[1m+++ b/package-lock.json[m
+[36m@@ -14,7 +14,7 @@[m
+         "express-rate-limit": "^7.4.0",[m
+         "helmet": "^7.1.0",[m
+         "jsonwebtoken": "^9.0.2",[m
+[31m-        "openai": "^4.56.0",[m
+[32m+[m[32m        "openai": "^4.104.0",[m
+         "pg": "^8.12.0"[m
+       },[m
+       "devDependencies": {[m
+[36m@@ -1027,7 +1027,7 @@[m
+     },[m
+     "node_modules/@types/node-fetch": {[m
+       "version": "2.6.13",[m
+[31m-      "resolved": "https://registry.npmmirror.com/@types/node-fetch/-/node-fetch-2.6.13.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@types/node-fetch/-/node-fetch-2.6.13.tgz",[m
+       "integrity": "sha512-QGpRVpzSaUs30JBSGPjOg4Uveu384erbHBoT1zeONvyCfwQxIkUshLAOqN/k9EjGviPRmWTTe6aH2qySWKTVSw==",[m
+       "license": "MIT",[m
+       "dependencies": {[m
+[36m@@ -1233,7 +1233,7 @@[m
+     },[m
+     "node_modules/abort-controller": {[m
+       "version": "3.0.0",[m
+[31m-      "resolved": "https://registry.npmmirror.com/abort-controller/-/abort-controller-3.0.0.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/abort-controller/-/abort-controller-3.0.0.tgz",[m
+       "integrity": "sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==",[m
+       "license": "MIT",[m
+       "dependencies": {[m
+[36m@@ -1258,7 +1258,7 @@[m
+     },[m
+     "node_modules/agentkeepalive": {[m
+       "version": "4.6.0",[m
+[31m-      "resolved": "https://registry.npmmirror.com/agentkeepalive/-/agentkeepalive-4.6.0.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/agentkeepalive/-/agentkeepalive-4.6.0.tgz",[m
+       "integrity": "sha512-kja8j7PjmncONqaTsB8fQ+wE2mSU2DJ9D4XKoJ5PFWIdRMa6SLSN1ff4mOr4jCbfRSsxR4keIiySJU0N9T5hIQ==",[m
+       "license": "MIT",[m
+       "dependencies": {[m
+[36m@@ -1717,7 +1717,7 @@[m
+     },[m
+     "node_modules/event-target-shim": {[m
+       "version": "5.0.1",[m
+[31m-      "resolved": "https://registry.npmmirror.com/event-target-shim/-/event-target-shim-5.0.1.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/event-target-shim/-/event-target-shim-5.0.1.tgz",[m
+       "integrity": "sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==",[m
+       "license": "MIT",[m
+       "engines": {[m
+[36m@@ -1838,13 +1838,13 @@[m
+     },[m
+     "node_modules/form-data-encoder": {[m
+       "version": "1.7.2",[m
+[31m-      "resolved": "https://registry.npmmirror.com/form-data-encoder/-/form-data-encoder-1.7.2.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/form-data-encoder/-/form-data-encoder-1.7.2.tgz",[m
+       "integrity": "sha512-qfqtYan3rxrnCk1VYaA4H+Ms9xdpPqvLZa6xmMgFvhO32x7/3J/ExcTd6qpxM0vH2GdMI+poehyBZvqfMTto8A==",[m
+       "license": "MIT"[m
+     },[m
+     "node_modules/formdata-node": {[m
+       "version": "4.4.1",[m
+[31m-      "resolved": "https://registry.npmmirror.com/formdata-node/-/formdata-node-4.4.1.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/formdata-node/-/formdata-node-4.4.1.tgz",[m
+       "integrity": "sha512-0iirZp3uVDjVGt9p49aTaqjk84TrglENEDuqfdlZQ1roC9CWlPk6Avf8EEnZNcAqPonwkG35x4n3ww/1THYAeQ==",[m
+       "license": "MIT",[m
+       "dependencies": {[m
+[36m@@ -2034,7 +2034,7 @@[m
+     },[m
+     "node_modules/humanize-ms": {[m
+       "version": "1.2.1",[m
+[31m-      "resolved": "https://registry.npmmirror.com/humanize-ms/-/humanize-ms-1.2.1.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/humanize-ms/-/humanize-ms-1.2.1.tgz",[m
+       "integrity": "sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==",[m
+       "license": "MIT",[m
+       "dependencies": {[m
+[36m@@ -2281,7 +2281,7 @@[m
+     },[m
+     "node_modules/node-domexception": {[m
+       "version": "1.0.0",[m
+[31m-      "resolved": "https://registry.npmmirror.com/node-domexception/-/node-domexception-1.0.0.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/node-domexception/-/node-domexception-1.0.0.tgz",[m
+       "integrity": "sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==",[m
+       "deprecated": "Use your platform's native DOMException instead",[m
+       "funding": [[m
+[36m@@ -2301,7 +2301,7 @@[m
+     },[m
+     "node_modules/node-fetch": {[m
+       "version": "2.7.0",[m
+[31m-      "resolved": "https://registry.npmmirror.com/node-fetch/-/node-fetch-2.7.0.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/node-fetch/-/node-fetch-2.7.0.tgz",[m
+       "integrity": "sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==",[m
+       "license": "MIT",[m
+       "dependencies": {[m
+[36m@@ -2368,7 +2368,7 @@[m
+     },[m
+     "node_modules/openai": {[m
+       "version": "4.104.0",[m
+[31m-      "resolved": "https://registry.npmmirror.com/openai/-/openai-4.104.0.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/openai/-/openai-4.104.0.tgz",[m
+       "integrity": "sha512-p99EFNsA/yX6UhVO93f5kJsDRLAg+CTA2RBqdHK4RtK8u5IJw32Hyb2dTGKbnnFmnuoBv5r7Z2CURI9sGZpSuA==",[m
+       "license": "Apache-2.0",[m
+       "dependencies": {[m
+[36m@@ -2398,7 +2398,7 @@[m
+     },[m
+     "node_modules/openai/node_modules/@types/node": {[m
+       "version": "18.19.130",[m
+[31m-      "resolved": "https://registry.npmmirror.com/@types/node/-/node-18.19.130.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@types/node/-/node-18.19.130.tgz",[m
+       "integrity": "sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==",[m
+       "license": "MIT",[m
+       "dependencies": {[m
+[36m@@ -2407,7 +2407,7 @@[m
+     },[m
+     "node_modules/openai/node_modules/undici-types": {[m
+       "version": "5.26.5",[m
+[31m-      "resolved": "https://registry.npmmirror.com/undici-types/-/undici-types-5.26.5.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-5.26.5.tgz",[m
+       "integrity": "sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==",[m
+       "license": "MIT"[m
+     },[m
+[36m@@ -3059,7 +3059,7 @@[m
+     },[m
+     "node_modules/tr46": {[m
+       "version": "0.0.3",[m
+[31m-      "resolved": "https://registry.npmmirror.com/tr46/-/tr46-0.0.3.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz",[m
+       "integrity": "sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==",[m
+       "license": "MIT"[m
+     },[m
+[36m@@ -3773,7 +3773,7 @@[m
+     },[m
+     "node_modules/web-streams-polyfill": {[m
+       "version": "4.0.0-beta.3",[m
+[31m-      "resolved": "https://registry.npmmirror.com/web-streams-polyfill/-/web-streams-polyfill-4.0.0-beta.3.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/web-streams-polyfill/-/web-streams-polyfill-4.0.0-beta.3.tgz",[m
+       "integrity": "sha512-QW95TCTaHmsYfHDybGMwO5IJIM93I/6vTRk+daHTWFPhwh+C8Cg7j7XyKrwrj8Ib6vYXe0ocYNrmzY4xAAN6ug==",[m
+       "license": "MIT",[m
+       "engines": {[m
+[36m@@ -3782,13 +3782,13 @@[m
+     },[m
+     "node_modules/webidl-conversions": {[m
+       "version": "3.0.1",[m
+[31m-      "resolved": "https://registry.npmmirror.com/webidl-conversions/-/webidl-conversions-3.0.1.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-3.0.1.tgz",[m
+       "integrity": "sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==",[m
+       "license": "BSD-2-Clause"[m
+     },[m
+     "node_modules/whatwg-url": {[m
+       "version": "5.0.0",[m
+[31m-      "resolved": "https://registry.npmmirror.com/whatwg-url/-/whatwg-url-5.0.0.tgz",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/whatwg-url/-/whatwg-url-5.0.0.tgz",[m
+       "integrity": "sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==",[m
+       "license": "MIT",[m
+       "dependencies": {[m
+[1mdiff --git a/package.json b/package.json[m
+[1mindex 1538a63..01d0bbe 100644[m
+[1m--- a/package.json[m
+[1m+++ b/package.json[m
+[36m@@ -18,7 +18,7 @@[m
+     "express-rate-limit": "^7.4.0",[m
+     "helmet": "^7.1.0",[m
+     "jsonwebtoken": "^9.0.2",[m
+[31m-    "openai": "^4.56.0",[m
+[32m+[m[32m    "openai": "^4.104.0",[m
+     "pg": "^8.12.0"[m
+   },[m
+   "devDependencies": {[m
+[1mdiff --git a/src/frontend/src/api.ts b/src/frontend/src/api.ts[m
+[1mindex b7ec554..48e0581 100644[m
+[1m--- a/src/frontend/src/api.ts[m
+[1m+++ b/src/frontend/src/api.ts[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-export type Role = 'admin' | 'pharmacist';[m
+[32m+[m[32mexport type Role = 'admin' | 'pharmacist' | 'staff';[m
+ [m
+ export interface Profile {[m
+   id: string;[m
+[1mdiff --git a/src/middleware/auth.ts b/src/middleware/auth.ts[m
+[1mindex ef0553b..1f5cc82 100644[m
+[1m--- a/src/middleware/auth.ts[m
+[1m+++ b/src/middleware/auth.ts[m
+[36m@@ -3,6 +3,26 @@[m [mimport jwt from 'jsonwebtoken';[m
+ import { queryOne } from '../db/query';[m
+ import { AuthUser } from '../types';[m
+ [m
+[32m+[m[32m// Authoritative list of supported roles[m
+[32m+[m[32mexport const VALID_ROLES = ['admin', 'pharmacist', 'staff'] as const;[m
+[32m+[m
+[32m+[m[32mexport type Role = typeof VALID_ROLES[number];[m
+[32m+[m
+[32m+[m[32mexport function isValidRole(role: unknown): role is Role {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    typeof role === 'string' &&[m
+[32m+[m[32m    VALID_ROLES.includes(role.trim().toLowerCase() as Role)[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mexport function normalizeRole(role: string): Role {[m
+[32m+[m[32m  const normalized = role.trim().toLowerCase() as Role;[m
+[32m+[m[32m  if (!VALID_ROLES.includes(normalized)) {[m
+[32m+[m[32m    throw new Error(`Unsupported role: ${role}`);[m
+[32m+[m[32m  }[m
+[32m+[m[32m  return normalized;[m
+[32m+[m[32m}[m
+[32m+[m
+ export async function authMiddleware(req: Request, res: Response, next: NextFunction) {[m
+   const header = req.headers.authorization;[m
+   if (!header || !header.startsWith('Bearer ')) {[m
+[36m@@ -38,7 +58,7 @@[m [mexport async function authMiddleware(req: Request, res: Response, next: NextFunc[m
+     const user: AuthUser = {[m
+       id: profile.id,[m
+       email: decoded.email || '',[m
+[31m-      role: profile.role as any,[m
+[32m+[m[32m      role: normalizeRole(profile.role),[m
+       pharmacy_id: profile.pharmacy_id,[m
+     };[m
+     req.user = user;[m
